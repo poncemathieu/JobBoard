@@ -34,7 +34,7 @@ public class ApplicationController {
                 .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
-    //POST /application
+    //POST /applications
     @PostMapping
     public Mono<Application> create(@Valid @RequestBody ApplicationRequest request) {
         return service.createApplication(request);
