@@ -1,5 +1,6 @@
 package com.example.JobBoard.web;
 
+import com.example.JobBoard.service.exception.InvalidSalaryRangeException;
 import com.example.JobBoard.service.exception.JobNotFoundException;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
@@ -50,6 +51,15 @@ public class GlobalExceptionHandler {
         body.put("status", HttpStatus.NOT_FOUND.value());
         body.put("message", ex.getMessage());
         body.put("jobId", ex.getJobId());
+        return body;
+    }
+
+    @ExceptionHandler(InvalidSalaryRangeException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, Object> handleInvalidSalaryRange(InvalidSalaryRangeException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("status", HttpStatus.BAD_REQUEST.value());
+        body.put("message", ex.getMessage());
         return body;
     }
 }

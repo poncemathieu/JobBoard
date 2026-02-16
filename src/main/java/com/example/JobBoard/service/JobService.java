@@ -2,6 +2,7 @@ package com.example.JobBoard.service;
 
 import com.example.JobBoard.domain.Job;
 import com.example.JobBoard.repository.InMemoryJobRepository;
+import com.example.JobBoard.service.exception.InvalidSalaryRangeException;
 import com.example.JobBoard.web.dto.JobRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -27,6 +28,11 @@ public class JobService {
     }
 
     public Mono<Job> createJob(JobRequest request) {
+
+        if(request.salaryMax() < request.salaryMin()) {
+            return Mono.error(new InvalidSalaryRangeException());
+        }
+
         String id = UUID.randomUUID().toString();
 
         Job newJob = new Job(
