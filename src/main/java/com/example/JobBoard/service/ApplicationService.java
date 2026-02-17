@@ -2,6 +2,7 @@ package com.example.JobBoard.service;
 
 import com.example.JobBoard.domain.Application;
 import com.example.JobBoard.repository.InMemoryApplicationRepository;
+import com.example.JobBoard.service.exception.DuplicateApplicationException;
 import com.example.JobBoard.service.exception.JobNotFoundException;
 import com.example.JobBoard.web.ApplicationRequest;
 import org.springframework.stereotype.Service;
@@ -26,31 +27,38 @@ public class ApplicationService {
 
     public Mono<Application> createApplication(ApplicationRequest request) {
         String jobId = request.jobId();
+        String email = request.candidateEmail();
 
 
         return jobService.getJobById(jobId)
                 .switchIfEmpty(Mono.error(new JobNotFoundException(jobId)))
-                .flatMap(job -> {
-                    String id = UUID.randomUUID().toString();
-                    int score = ThreadLocalRandom.current().nextInt(1, 101);
+                .flatMap(job ->
+                        repository.findByJobIdAndEmail(jobId, email)
+                                .flatMap(existing ->
+                                        Mono.<Application>error(new DuplicateApplicationException())
+                                )
+                                .switchIfEmpty(Mono.defer(() -> {
+                                    String id = UUID.randomUUID().toString();
+                                    int score = ThreadLocalRandom.current().nextInt(1, 101);
 
+                                    Application app = new Application(
+                                            id,
+                                            jobId,
+                                            request.candidateName(),
+                                            email,
+                                            request.message(),
+                                            score,
+                                            "PENDING",
+                                            Instant.now()
+                                    );
 
-                    Application app = new Application(
-                            id,
-                            request.jobId(),
-                            request.candidateName(),
-                            request.candidateEmail(),
-                            request.message(),
-                            score,
-                            "PENDING",
-                            Instant.now()
-                    );
-                    return repository.save(app);
-                });
-
+                                    return repository.save(app);
+                                }))
+                );
     }
 
-    public Flux<Application> getAllApplications() {
+
+        public Flux<Application> getAllApplications() {
         return repository.findAll();
     }
 

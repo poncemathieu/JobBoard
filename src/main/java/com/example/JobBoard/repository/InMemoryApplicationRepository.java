@@ -7,7 +7,6 @@ import reactor.core.publisher.Mono;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Stream;
 
 @Repository
 public class InMemoryApplicationRepository {
@@ -27,6 +26,20 @@ public class InMemoryApplicationRepository {
                 data.values().stream()
                         .filter(app -> jobId.equals(app.jobId()))
         );
+    }
+
+    public Mono<Application> findByJobIdAndEmail(String jobId, String email) {
+        String nomalizedEmail = email == null ? "" : email.trim().toLowerCase();
+
+        Application found = data.values().stream()
+                .filter(app -> jobId.equals(app.jobId())
+                        && app.candidateEmail() != null
+                        && app.candidateEmail().trim().toLowerCase().equals(nomalizedEmail)
+                )
+                .findFirst()
+                .orElse(null);
+
+        return Mono.justOrEmpty(found);
     }
 
     public Mono<Application> save(Application application) {

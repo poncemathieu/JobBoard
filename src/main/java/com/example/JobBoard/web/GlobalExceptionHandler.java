@@ -1,5 +1,6 @@
 package com.example.JobBoard.web;
 
+import com.example.JobBoard.service.exception.DuplicateApplicationException;
 import com.example.JobBoard.service.exception.InvalidSalaryRangeException;
 import com.example.JobBoard.service.exception.JobNotFoundException;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -59,6 +60,15 @@ public class GlobalExceptionHandler {
     public Map<String, Object> handleInvalidSalaryRange(InvalidSalaryRangeException ex) {
         Map<String, Object> body = new HashMap<>();
         body.put("status", HttpStatus.BAD_REQUEST.value());
+        body.put("message", ex.getMessage());
+        return body;
+    }
+
+    @ExceptionHandler(DuplicateApplicationException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public Map<String, Object> handleDuplicateApplication(DuplicateApplicationException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("status", HttpStatus.CONFLICT.value());
         body.put("message", ex.getMessage());
         return body;
     }
