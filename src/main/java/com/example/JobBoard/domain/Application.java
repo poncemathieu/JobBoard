@@ -9,6 +9,6 @@ public record Application(
         String candidateEmail,
         String message,
         int score,
-        String status,
+        ApplicationStatus status,
         Instant createdAt
 ) {}
