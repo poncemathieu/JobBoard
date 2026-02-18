@@ -3,6 +3,7 @@ package com.example.JobBoard.service;
 import com.example.JobBoard.domain.Job;
 import com.example.JobBoard.repository.InMemoryJobRepository;
 import com.example.JobBoard.service.exception.InvalidSalaryRangeException;
+import com.example.JobBoard.service.exception.JobNotFoundException;
 import com.example.JobBoard.web.dto.JobRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -45,6 +46,26 @@ public class JobService {
         );
 
         return repository.save(newJob);
+    }
+
+    public Mono<Job> updateJob(String id, JobRequest request) {
+        if(request.salaryMax() < request.salaryMin()) {
+            return Mono.error(new InvalidSalaryRangeException());
+        }
+
+        return repository.findById(id)
+                .switchIfEmpty(Mono.error(new JobNotFoundException(id)))
+                .flatMap(existing -> {
+                    Job updated = new Job(
+                            id,
+                            request.title(),
+                            request.company(),
+                            request.location(),
+                            request.salaryMin(),
+                            request.salaryMax()
+                    );
+                    return repository.save(updated);
+                });
     }
 
     public Mono<Void> deleteJob(String id) {

@@ -38,6 +38,12 @@ public class JobController {
         return service.createJob(request);
     }
 
+    @PutMapping("/{id}")
+    public Mono<ResponseEntity<Job>> updateJob(@PathVariable String id, @Valid @RequestBody JobRequest request) {
+        return service.updateJob(id, request)
+                .map(ResponseEntity::ok);
+    }
+
     @DeleteMapping("/{id}")
     public Mono<ResponseEntity<Object>> deleteJob(@PathVariable String id) {
         return service.getJobById(id)
