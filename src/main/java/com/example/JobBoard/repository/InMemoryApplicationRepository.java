@@ -42,6 +42,11 @@ public class InMemoryApplicationRepository {
         return Mono.justOrEmpty(found);
     }
 
+    public Mono<Application> update(Application application) {
+        data.put(application.id(), application);
+        return Mono.just(application);
+    }
+
     public Mono<Application> save(Application application) {
         data.put(application.id(), application);
         return Mono.just(application);

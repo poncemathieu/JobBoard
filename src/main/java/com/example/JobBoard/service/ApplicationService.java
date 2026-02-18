@@ -1,7 +1,9 @@
 package com.example.JobBoard.service;
 
 import com.example.JobBoard.domain.Application;
+import com.example.JobBoard.domain.ApplicationStatus;
 import com.example.JobBoard.repository.InMemoryApplicationRepository;
+import com.example.JobBoard.service.exception.ApplicationNotFoundException;
 import com.example.JobBoard.service.exception.DuplicateApplicationException;
 import com.example.JobBoard.service.exception.JobNotFoundException;
 import com.example.JobBoard.web.ApplicationRequest;
@@ -48,13 +50,31 @@ public class ApplicationService {
                                             email,
                                             request.message(),
                                             score,
-                                            "PENDING",
+                                            ApplicationStatus.PENDING,
                                             Instant.now()
                                     );
 
                                     return repository.save(app);
                                 }))
                 );
+    }
+
+    public Mono<Application> updateStatus(String applicationId, ApplicationStatus status) {
+        return repository.findById(applicationId)
+                .switchIfEmpty(Mono.error(new ApplicationNotFoundException(applicationId)))
+                .flatMap(existing -> {
+                    Application updated = new Application(
+                            existing.id(),
+                            existing.jobId(),
+                            existing.candidateName(),
+                            existing.candidateEmail(),
+                            existing.message(),
+                            existing.score(),
+                            status,
+                            existing.createdAt()
+                    );
+                    return repository.update(updated);
+                });
     }
 
 

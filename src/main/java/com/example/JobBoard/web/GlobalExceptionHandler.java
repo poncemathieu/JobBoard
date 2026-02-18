@@ -1,8 +1,10 @@
 package com.example.JobBoard.web;
 
+import com.example.JobBoard.service.exception.ApplicationNotFoundException;
 import com.example.JobBoard.service.exception.DuplicateApplicationException;
 import com.example.JobBoard.service.exception.InvalidSalaryRangeException;
 import com.example.JobBoard.service.exception.JobNotFoundException;
+import com.example.JobBoard.web.dto.UpdateApplicationStatusRequest;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
@@ -70,6 +72,16 @@ public class GlobalExceptionHandler {
         Map<String, Object> body = new HashMap<>();
         body.put("status", HttpStatus.CONFLICT.value());
         body.put("message", ex.getMessage());
+        return body;
+    }
+
+    @ExceptionHandler(ApplicationNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Map<String, Object> handleApplicationNotFound(ApplicationNotFoundException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("status", HttpStatus.NOT_FOUND.value());
+        body.put("message", ex.getMessage());
+        body.put("applicationId", ex.getMessage());
         return body;
     }
 }
