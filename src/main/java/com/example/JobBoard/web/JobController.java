@@ -3,6 +3,7 @@ package com.example.JobBoard.web;
 import com.example.JobBoard.domain.Job;
 import com.example.JobBoard.service.JobService;
 import com.example.JobBoard.web.dto.JobRequest;
+import com.example.JobBoard.web.dto.JobsPageResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +21,7 @@ public class JobController {
         this.service = service;
     }
 
-    @GetMapping
+    @GetMapping("/all")
     public Flux<Job> getAllJobs() {
         return service.getAllJobs();
     }
@@ -30,6 +31,16 @@ public class JobController {
         return service.getJobById(id)
                 .map(ResponseEntity::ok)
                 .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping
+    public Mono<JobsPageResponse> getJobs(
+            @RequestParam(defaultValue = "20") int limit,
+            @RequestParam(defaultValue = "0") int offset
+    ) {
+        int safeLimit = Math.min(Math.max(limit, 1), 100);
+        int safeOffset = Math.max(offset, 0);
+        return service.getJobsPage(safeLimit, safeOffset);
     }
 
     @PostMapping
