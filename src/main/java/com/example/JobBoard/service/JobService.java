@@ -5,6 +5,7 @@ import com.example.JobBoard.repository.InMemoryJobRepository;
 import com.example.JobBoard.service.exception.InvalidSalaryRangeException;
 import com.example.JobBoard.service.exception.JobNotFoundException;
 import com.example.JobBoard.web.dto.JobRequest;
+import com.example.JobBoard.web.dto.JobsPageResponse;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -26,6 +27,17 @@ public class JobService {
 
     public Mono<Job> getJobById(String id) {
         return repository.findById(id);
+    }
+
+    public Mono<JobsPageResponse> getJobsPage(int limit, int offset) {
+        return repository.count()
+                .zipWith(repository.findPage(limit, offset).collectList())
+                .map(result -> new JobsPageResponse(
+                        result.getT2(),
+                        limit,
+                        offset,
+                        result.getT1()
+                ));
     }
 
     public Mono<Job> createJob(JobRequest request) {

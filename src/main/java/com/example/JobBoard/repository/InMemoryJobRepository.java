@@ -20,6 +20,16 @@ public class InMemoryJobRepository {
         data.put(j2.id(), j2);
     }
 
+    public Mono<Long> count() {
+        return Mono.just((long) data.size());
+    }
+
+    public Flux<Job> findPage(int limit, int offset) {
+        return Flux.fromIterable(data.values())
+                .skip(offset)
+                .take(limit);
+    }
+
     public Flux<Job> findAll() {
         return Flux.fromIterable(data.values());
     }
