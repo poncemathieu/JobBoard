@@ -5,6 +5,7 @@ import com.example.JobBoard.service.JobService;
 import com.example.JobBoard.web.dto.JobRequest;
 import com.example.JobBoard.web.dto.JobsPageResponse;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,11 +37,15 @@ public class JobController {
     @GetMapping
     public Mono<JobsPageResponse> getJobs(
             @RequestParam(defaultValue = "20") int limit,
-            @RequestParam(defaultValue = "0") int offset
+            @RequestParam(defaultValue = "0") int offset,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String direction
     ) {
         int safeLimit = Math.min(Math.max(limit, 1), 100);
         int safeOffset = Math.max(offset, 0);
-        return service.getJobsPage(safeLimit, safeOffset);
+
+        Sort sort = Sort.by("desc".equalsIgnoreCase(direction) ? Sort.Direction.DESC : Sort.Direction.ASC, sortBy);
+        return service.getJobsPage(safeLimit, safeOffset, sort);
     }
 
     @PostMapping
