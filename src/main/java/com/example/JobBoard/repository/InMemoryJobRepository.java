@@ -1,10 +1,13 @@
 package com.example.JobBoard.repository;
 
 import com.example.JobBoard.domain.Job;
+import com.example.JobBoard.service.SortSpec;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Comparator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -24,10 +27,15 @@ public class InMemoryJobRepository {
         return Mono.just((long) data.size());
     }
 
-    public Flux<Job> findPage(int limit, int offset) {
-        return Flux.fromIterable(data.values())
-                .skip(offset)
-                .take(limit);
+    public Flux<Job> findPage(int limit, int offset, Sort sort) {
+
+        Comparator<Job> comparator = toComparator(sort);
+
+        return Flux.fromStream(data.values().stream()
+                        .sorted(comparator)
+                        .skip(offset)
+                        .limit(limit)
+        );
     }
 
     public Flux<Job> findAll() {
@@ -46,5 +54,20 @@ public class InMemoryJobRepository {
     public Mono<Void> deleteById(String id) {
         data.remove(id);
         return Mono.empty();
+    }
+
+    private Comparator<Job> toComparator(Sort sort) {
+        Sort.Order order = sort.iterator().next();
+
+        Comparator<Job> comparator = switch (order.getProperty()) {
+            case "title" -> Comparator.comparing(Job::title, String.CASE_INSENSITIVE_ORDER);
+            case "company" -> Comparator.comparing(Job::company, String.CASE_INSENSITIVE_ORDER);
+            case "location" -> Comparator.comparing(Job::location, String.CASE_INSENSITIVE_ORDER);
+            case "salaryMin" -> Comparator.comparing(Job::salaryMax);
+            case "salaryMax" -> Comparator.comparing(Job::salaryMin);
+            default -> Comparator.comparing(Job::id);
+        };
+
+        return order.isDescending() ? comparator.reversed() : comparator;
     }
 }

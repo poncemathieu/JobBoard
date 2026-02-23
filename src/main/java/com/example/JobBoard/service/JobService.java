@@ -6,6 +6,7 @@ import com.example.JobBoard.service.exception.InvalidSalaryRangeException;
 import com.example.JobBoard.service.exception.JobNotFoundException;
 import com.example.JobBoard.web.dto.JobRequest;
 import com.example.JobBoard.web.dto.JobsPageResponse;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -29,9 +30,11 @@ public class JobService {
         return repository.findById(id);
     }
 
-    public Mono<JobsPageResponse> getJobsPage(int limit, int offset) {
+    public Mono<JobsPageResponse> getJobsPage(int limit, int offset, Sort sort) {
+       // SortSpec sortSpec = SortSpec.parse(String.valueOf(sort));
+
         return repository.count()
-                .zipWith(repository.findPage(limit, offset).collectList())
+                .zipWith(repository.findPage(limit, offset, sort).collectList())
                 .map(result -> new JobsPageResponse(
                         result.getT2(),
                         limit,
