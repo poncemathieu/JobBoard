@@ -1,15 +1,18 @@
 package com.example.JobBoard.repository;
 
 import com.example.JobBoard.domain.Job;
+import com.example.JobBoard.service.JobService;
 import com.example.JobBoard.service.SortSpec;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.text.Normalizer;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
 @Repository
 public class InMemoryJobRepository {
@@ -23,16 +26,40 @@ public class InMemoryJobRepository {
         data.put(j2.id(), j2);
     }
 
-    public Mono<Long> count() {
-        return Mono.just((long) data.size());
+    private String normalize(String input) {
+        return Normalizer.normalize(input, Normalizer.Form.NFD)
+                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "")
+                .toLowerCase();
     }
 
-    public Flux<Job> findPage(int limit, int offset, Sort sort) {
+    public Mono<Long> count(String query) {
+
+        return findAll()
+                .filter(job -> query == null || query.isBlank() ||
+                        normalize(job.title()).contains(normalize(query)) ||
+                        normalize(job.company()).contains(normalize(query)) ||
+                        normalize(job.location()).contains(normalize(query)))
+                .count();
+    }
+
+    public Flux<Job> findPage(int limit, int offset, Sort sort, String query) {
+
+        Stream<Job> stream = data.values().stream();
+
+        if(query != null && !query.isBlank()) {
+            String q = normalize(query);
+
+            stream = stream.filter(job ->
+                    normalize(job.title()).contains(q)
+                            || normalize(job.company()).contains(q)
+                            || normalize(job.location()).contains(q)
+            );
+        }
 
         Comparator<Job> comparator = toComparator(sort);
 
-        return Flux.fromStream(data.values().stream()
-                        .sorted(comparator)
+        return Flux.fromStream(
+                stream.sorted(comparator)
                         .skip(offset)
                         .limit(limit)
         );
