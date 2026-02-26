@@ -30,11 +30,11 @@ public class JobService {
         return repository.findById(id);
     }
 
-    public Mono<JobsPageResponse> getJobsPage(int limit, int offset, Sort sort) {
+    public Mono<JobsPageResponse> getJobsPage(int limit, int offset, Sort sort, String query) {
        // SortSpec sortSpec = SortSpec.parse(String.valueOf(sort));
 
-        return repository.count()
-                .zipWith(repository.findPage(limit, offset, sort).collectList())
+        return repository.count(query)
+                .zipWith(repository.findPage(limit, offset, sort, query).collectList())
                 .map(result -> new JobsPageResponse(
                         result.getT2(),
                         limit,

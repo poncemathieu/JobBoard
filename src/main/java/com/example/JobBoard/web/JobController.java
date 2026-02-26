@@ -39,13 +39,14 @@ public class JobController {
             @RequestParam(defaultValue = "20") int limit,
             @RequestParam(defaultValue = "0") int offset,
             @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String direction
+            @RequestParam(defaultValue = "asc") String direction,
+            @RequestParam(required = false) String query
     ) {
         int safeLimit = Math.min(Math.max(limit, 1), 100);
         int safeOffset = Math.max(offset, 0);
 
         Sort sort = Sort.by("desc".equalsIgnoreCase(direction) ? Sort.Direction.DESC : Sort.Direction.ASC, sortBy);
-        return service.getJobsPage(safeLimit, safeOffset, sort);
+        return service.getJobsPage(safeLimit, safeOffset, sort, query);
     }
 
     @PostMapping
