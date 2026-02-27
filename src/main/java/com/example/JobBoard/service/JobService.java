@@ -27,11 +27,29 @@ public class JobService {
     }
 
     public Flux<Job> getAllJobs() {
-        return repository.findAll();
+        return Flux.deferContextual(ctx -> {
+            String traceId = ctx.getOrDefault(TraceIdFilter.TRACE_ID_KEY, "no-trace");
+            log.info("[{}] getAllJobs called",  traceId);
+
+            return repository.findAll()
+                    .doOnComplete(() -> log.info("[{}] getAllJobs completed",traceId));
+        });
+
     }
 
     public Mono<Job> getJobById(String id) {
-        return repository.findById(id);
+        return Mono.deferContextual(ctx -> {
+            String traceId = ctx.getOrDefault(TraceIdFilter.TRACE_ID_KEY, "");
+            log.info("[{}] getJobById called - id={}",  traceId, id);
+
+            return repository.findById(id)
+                    .switchIfEmpty(
+                            Mono.defer(() -> {
+                               return Mono.error(new JobNotFoundException(id));
+                            }))
+                    .doOnSuccess(job -> log.info("[{}] getJobById completed",traceId));
+        });
+
     }
 
     public Mono<JobsPageResponse> getJobsPage(int limit, int offset, Sort sort, String query) {
@@ -56,46 +74,63 @@ public class JobService {
     }
 
     public Mono<Job> createJob(JobRequest request) {
+        return Mono.deferContextual(ctx -> {
+            String traceId = ctx.getOrDefault(TraceIdFilter.TRACE_ID_KEY, "");
+            log.info("[{}] createJob called - title={}", traceId, request.title());
 
-        if(request.salaryMax() < request.salaryMin()) {
-            return Mono.error(new InvalidSalaryRangeException());
-        }
-
-        String id = UUID.randomUUID().toString();
-
-        Job newJob = new Job(
-                id,
-                request.title(),
-                request.company(),
-                request.location(),
-                request.salaryMin(),
-                request.salaryMax()
-        );
-
-        return repository.save(newJob);
+            if(request.salaryMax() < request.salaryMin()) {
+                log.warn("[{}] createJob failed - invalid salary range min={}, max={}", traceId, request.salaryMin(), request.salaryMax());
+                return Mono.error(new InvalidSalaryRangeException());
+            }
+            String id = UUID.randomUUID().toString();
+            Job newJob = new Job(
+                    id,
+                    request.title(),
+                    request.company(),
+                    request.location(),
+                    request.salaryMin(),
+                    request.salaryMax()
+            );
+            return repository.save(newJob)
+                    .doOnSuccess(job -> log.info("[{}] createJob success - id={}",traceId, job.id()));
+        });
     }
 
     public Mono<Job> updateJob(String id, JobRequest request) {
-        if(request.salaryMax() < request.salaryMin()) {
-            return Mono.error(new InvalidSalaryRangeException());
-        }
+        return Mono.deferContextual(ctx -> {
+            String traceId = ctx.getOrDefault(TraceIdFilter.TRACE_ID_KEY, "");
+            log.info("[{}] updateJob called - id={}", traceId, id);
 
-        return repository.findById(id)
-                .switchIfEmpty(Mono.error(new JobNotFoundException(id)))
-                .flatMap(existing -> {
-                    Job updated = new Job(
-                            id,
-                            request.title(),
-                            request.company(),
-                            request.location(),
-                            request.salaryMin(),
-                            request.salaryMax()
-                    );
-                    return repository.save(updated);
-                });
+            if(request.salaryMax() < request.salaryMin()) {
+                log.warn("[{}] updateJob failed - invalid salary range min={}, max={}", traceId, request.salaryMin(), request.salaryMax());
+                return Mono.error(new InvalidSalaryRangeException());
+            }
+
+            return repository.findById(id)
+                    .switchIfEmpty(Mono.error(new JobNotFoundException(id)))
+                    .flatMap(existing -> {
+                        Job updated = new Job(
+                                id,
+                                request.title(),
+                                request.company(),
+                                request.location(),
+                                request.salaryMin(),
+                                request.salaryMax()
+                        );
+                        return repository.save(updated)
+                                .doOnSuccess(job -> log.info("[{}] updateJob success - id={}",traceId, id));
+                    });
+        });
+
     }
 
     public Mono<Void> deleteJob(String id) {
-        return repository.deleteById(id);
+        return Mono.deferContextual(ctx -> {
+            String traceId = ctx.getOrDefault(TraceIdFilter.TRACE_ID_KEY, "");
+            log.info("[{}] deleteJob called - id={}", traceId, id);
+            return repository.deleteById(id)
+                    .doOnSuccess(v -> log.info("[{}] deleteJob success - id={}",traceId, id));
+        });
+
     }
 }

@@ -29,12 +29,12 @@ public class InMemoryApplicationRepository {
     }
 
     public Mono<Application> findByJobIdAndEmail(String jobId, String email) {
-        String nomalizedEmail = email == null ? "" : email.trim().toLowerCase();
+        String normalizedEmail = email == null ? "" : email.trim().toLowerCase();
 
         Application found = data.values().stream()
                 .filter(app -> jobId.equals(app.jobId())
                         && app.candidateEmail() != null
-                        && app.candidateEmail().trim().toLowerCase().equals(nomalizedEmail)
+                        && app.candidateEmail().trim().toLowerCase().equals(normalizedEmail)
                 )
                 .findFirst()
                 .orElse(null);

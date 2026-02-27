@@ -1,5 +1,7 @@
 package com.example.JobBoard.filters;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
@@ -14,6 +16,8 @@ public class TraceIdFilter implements WebFilter {
     // Clé utilisée pour stocker le traceId
     public static final String TRACE_ID_KEY = "traceId";
 
+    private static final Logger log = LoggerFactory.getLogger(TraceIdFilter.class);
+
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
 
@@ -26,12 +30,22 @@ public class TraceIdFilter implements WebFilter {
         }
 
         String finalTraceId = traceId;
+        String method = exchange.getRequest().getMethod().name();
+        String path = exchange.getRequest().getPath().value();
 
         //Ajout du traceId dans le header de la reponse HTTP
         exchange.getResponse().getHeaders()
                 .add(TRACE_ID_HEADER, finalTraceId);
 
+        log.info("[{}] >>>> {} {}", finalTraceId, method, path);
+
         return chain.filter(exchange)
+                .doFinally(signal -> {
+                    int status = exchange.getResponse().getStatusCode() != null
+                            ? exchange.getResponse().getStatusCode().value()
+                            : 0;
+                    log.info("[{}] <<<<<< {} {} - {}", finalTraceId, method, path, status);
+                })
                 .contextWrite(ctx -> ctx.put(TRACE_ID_KEY, finalTraceId));
     }
 
