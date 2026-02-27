@@ -1,0 +1,210 @@
+{
+  "info": {
+    "name": "JobBoard API",
+    "description": "Collection Postman pour l'API JobBoard — Spring WebFlux",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Jobs",
+      "item": [
+        {
+          "name": "GET tous les jobs (paginé)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs?limit=20&offset=0&sortBy=id&direction=asc",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs"],
+              "query": [
+                { "key": "limit", "value": "20", "description": "Nombre de résultats (1-100)" },
+                { "key": "offset", "value": "0", "description": "Décalage" },
+                { "key": "sortBy", "value": "id", "description": "Champ de tri" },
+                { "key": "direction", "value": "asc", "description": "asc ou desc" },
+                { "key": "query", "value": "", "description": "Recherche par titre, société ou localisation", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET tous les jobs (liste complète)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/all",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "all"]
+            }
+          }
+        },
+        {
+          "name": "GET job par ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", ":id"],
+              "variable": [
+                { "key": "id", "value": "1", "description": "ID du job" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST créer un job",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Développeur Angular\",\n  \"company\": \"TechCorp\",\n  \"location\": \"Montréal\",\n  \"salaryMin\": 60000,\n  \"salaryMax\": 80000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jobs",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs"]
+            }
+          }
+        },
+        {
+          "name": "PUT modifier un job",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Développeur Angular Senior\",\n  \"company\": \"TechCorp\",\n  \"location\": \"Montréal\",\n  \"salaryMin\": 80000,\n  \"salaryMax\": 100000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jobs/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", ":id"],
+              "variable": [
+                { "key": "id", "value": "1", "description": "ID du job" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE supprimer un job",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", ":id"],
+              "variable": [
+                { "key": "id", "value": "1", "description": "ID du job" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Applications",
+      "item": [
+        {
+          "name": "GET toutes les applications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/applications",
+              "host": ["{{baseUrl}}"],
+              "path": ["applications"],
+              "query": [
+                { "key": "jobId", "value": "", "description": "Filtrer par jobId", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET applications par jobId",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/applications?jobId=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["applications"],
+              "query": [
+                { "key": "jobId", "value": "1", "description": "ID du job" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET application par ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/applications/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["applications", ":id"],
+              "variable": [
+                { "key": "id", "value": "1", "description": "ID de la candidature" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST créer une candidature",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jobId\": \"1\",\n  \"candidateName\": \"Mathieu Ponce\",\n  \"candidateEmail\": \"mathieu@example.com\",\n  \"message\": \"Je suis très motivé pour ce poste.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/applications",
+              "host": ["{{baseUrl}}"],
+              "path": ["applications"]
+            }
+          }
+        },
+        {
+          "name": "PATCH modifier le statut d'une candidature",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ACCEPTED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/applications/:id/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["applications", ":id", "status"],
+              "variable": [
+                { "key": "id", "value": "1", "description": "ID de la candidature" }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
