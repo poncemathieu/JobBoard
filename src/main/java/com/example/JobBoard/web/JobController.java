@@ -30,8 +30,7 @@ public class JobController {
     @GetMapping("/{id}")
     public Mono<ResponseEntity<Job>> getJobById(@PathVariable String id) {
         return service.getJobById(id)
-                .map(ResponseEntity::ok)
-                .defaultIfEmpty(ResponseEntity.notFound().build());
+                .map(ResponseEntity::ok);
     }
 
     @GetMapping
