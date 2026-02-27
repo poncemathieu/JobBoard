@@ -23,7 +23,7 @@ JobBoard est une API qui permet de :
 
 ```bash
 # Cloner le projet
-git clone https://github.com/ton-repo/JobBoard.git
+git clone https://github.com/poncemathieu/JobBoard.git
 cd JobBoard
 
 # Lancer l'application
